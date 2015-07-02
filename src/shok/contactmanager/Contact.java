@@ -34,4 +34,7 @@ public class Contact {
 	public String getNumber(){
 		return number;
 	}
+	public String getMail(){
+		return mail;
+	}
 }

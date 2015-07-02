@@ -29,8 +29,8 @@ public class ContactsAdapter extends ArrayAdapter<Contact> {
 		LayoutInflater inflater = (LayoutInflater)context.
 				getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View view = inflater.inflate(resource, parent, false);
-		TextView name = (TextView)view.findViewById(R.id.textView1);
-		ImageView image = (ImageView)view.findViewById(R.id.imageView1);
+		TextView name = (TextView)view.findViewById(R.id.contactName);
+		ImageView image = (ImageView)view.findViewById(R.id.image);
 		if(contact.getImage()!="null"){
 			image.setImageURI(Uri.parse(contact.getImage()));
 		}else{

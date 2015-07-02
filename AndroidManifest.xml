@@ -23,6 +23,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity 
+            android:name="shok.contactmanager.ContactActivity"
+            android:label="Contact Details"></activity>y
     </application>
 
 </manifest>

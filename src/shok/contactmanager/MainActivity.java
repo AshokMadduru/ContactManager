@@ -5,7 +5,9 @@ import java.util.List;
 
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBarActivity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -39,11 +41,18 @@ public class MainActivity extends ActionBarActivity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View arg1, int arg2,
 					long arg3) {
-				
 				Contact contact = (Contact) parent.getItemAtPosition(arg2);
-				Log.d("parent",contact.getName());
-				DialogFragment dialog = new ContactDialog();
-				dialog.show(getSupportFragmentManager(), "custom");
+				String name = contact.getName();
+				String mail = contact.getMail();
+				String number = contact.getNumber();
+				String image = contact.getImage();
+				Intent intent = new Intent(getApplicationContext(),ContactActivity.class);
+				intent.putExtra("contact_name",name );
+				intent.putExtra("contact_mail", mail );
+				intent.putExtra("contact_number", number);
+				intent.putExtra("contact_image", image);
+				startActivity(intent);
+				
 			}
 		});
 	}
@@ -54,7 +63,6 @@ public class MainActivity extends ActionBarActivity {
 				null, null, null, null);
 		String[][] contacts = new String[cursor.getCount()][4];
 		int count = 0;
-		Log.d("total",""+cursor.getCount());
 		if(cursor.getCount()>0){
 			while(cursor.moveToNext()){
 				String contactName = "";
@@ -104,7 +112,6 @@ public class MainActivity extends ActionBarActivity {
 				contacts[count][1]=contactImage;
 				contacts[count][2]=contactNumber;
 				contacts[count][3]=contactEmail;
-				Log.d("contact",contactName+" "+contactNumber+" "+contactEmail);
 				count++;
 			}
 		}
