@@ -3,6 +3,7 @@ package shok.contactmanager;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBarActivity;
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -38,10 +39,11 @@ public class MainActivity extends ActionBarActivity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View arg1, int arg2,
 					long arg3) {
-				// TODO Auto-generated method stub
-				Log.d("arg2",""+arg2);
+				
 				Contact contact = (Contact) parent.getItemAtPosition(arg2);
 				Log.d("parent",contact.getName());
+				DialogFragment dialog = new ContactDialog();
+				dialog.show(getSupportFragmentManager(), "custom");
 			}
 		});
 	}
