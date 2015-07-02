@@ -27,7 +27,8 @@ public class MainActivity extends ActionBarActivity {
 		String[][] totalContacts=getContacts();
 		List<Contact> list = new ArrayList<Contact>();
 		for(int i=0;i<totalContacts.length;i++){
-			list.add(new Contact(totalContacts[i][0],totalContacts[i][1]));
+			list.add(new Contact(totalContacts[i][0],totalContacts[i][1],
+					totalContacts[i][2],totalContacts[i][3]));
 		}
 		ArrayAdapter<Contact> adapter = new ContactsAdapter(this,R.layout.contact, list);
 		ListView listView = (ListView)findViewById(R.id.listView1);
@@ -35,10 +36,12 @@ public class MainActivity extends ActionBarActivity {
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+			public void onItemClick(AdapterView<?> parent, View arg1, int arg2,
 					long arg3) {
 				// TODO Auto-generated method stub
 				Log.d("arg2",""+arg2);
+				Contact contact = (Contact) parent.getItemAtPosition(arg2);
+				Log.d("parent",contact.getName());
 			}
 		});
 	}
@@ -47,7 +50,7 @@ public class MainActivity extends ActionBarActivity {
 		ContentResolver cr =  getContentResolver();
 		Cursor cursor = cr.query(ContactsContract.Contacts.CONTENT_URI,
 				null, null, null, null);
-		String[][] contacts = new String[cursor.getCount()][2];
+		String[][] contacts = new String[cursor.getCount()][4];
 		int count = 0;
 		Log.d("total",""+cursor.getCount());
 		if(cursor.getCount()>0){
@@ -55,23 +58,34 @@ public class MainActivity extends ActionBarActivity {
 				String contactName = "";
 				String contactNumber = "";
 				String contactImage = "";
+				String contactEmail = "";
 				String id = cursor.getString(
 						cursor.getColumnIndex(ContactsContract.Contacts._ID));
 				contactName = cursor.getString(
 						cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-				Log.d("name",contactName);
 				
 				String image_uri = cursor.getString(cursor.getColumnIndex(
 						ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
 	 
 				if(image_uri==null){
 					contactImage = "null";
-					Log.d("image_uri ","null");
 				}else{
 					contactImage=image_uri;
-					Log.d("image_uri ",image_uri);
 				}	            
 	  
+				Cursor emails = cr.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, 
+						null, ContactsContract.CommonDataKinds.Email.CONTACT_ID+" = ?",
+						new String[] {id}, null);
+				while(emails.moveToNext()){
+					String email_id = emails.getString(emails.getColumnIndex(ContactsContract.
+							CommonDataKinds.Email.ADDRESS));
+					if(email_id==null){
+						contactEmail = "null";
+					}else{
+						contactEmail = email_id;
+					}
+				}
+				
 				int has_phone_num = Integer.parseInt(cursor.getString(
 						cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
 				if(has_phone_num>0){
@@ -81,12 +95,14 @@ public class MainActivity extends ActionBarActivity {
 					while(cur.moveToNext()){
 						contactNumber = cur.getString(cur.getColumnIndex(
 								ContactsContract.CommonDataKinds.Phone.NUMBER));
-						Log.d("number",contactName);
 					}
 					cur.close();
 				}
 				contacts[count][0]=contactName;
 				contacts[count][1]=contactImage;
+				contacts[count][2]=contactNumber;
+				contacts[count][3]=contactEmail;
+				Log.d("contact",contactName+" "+contactNumber+" "+contactEmail);
 				count++;
 			}
 		}
