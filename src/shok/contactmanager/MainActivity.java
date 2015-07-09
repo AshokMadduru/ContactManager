@@ -9,6 +9,7 @@ import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
@@ -20,22 +21,20 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
 
+	ListView listView;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		String[][] totalContacts=getContacts();
-		List<Contact> list = new ArrayList<Contact>();
-		for(int i=0;i<totalContacts.length;i++){
-			list.add(new Contact(totalContacts[i][0],totalContacts[i][1],
-					totalContacts[i][2],totalContacts[i][3]));
-		}
-		ArrayAdapter<Contact> adapter = new ContactsAdapter(this,R.layout.contact, list);
-		ListView listView = (ListView)findViewById(R.id.listView1);
+		
+		ArrayAdapter<Contact> adapter = new ContactsAdapter(this,R.layout.contact, new ArrayList<Contact>());
+		listView = (ListView)findViewById(R.id.listView1);
 		listView.setAdapter(adapter);
+		new ContactsTask().execute();
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
@@ -57,67 +56,6 @@ public class MainActivity extends ActionBarActivity {
 		});
 	}
 	
-	public String[][] getContacts(){
-		ContentResolver cr =  getContentResolver();
-		Cursor cursor = cr.query(ContactsContract.Contacts.CONTENT_URI,
-				null, null, null, null);
-		String[][] contacts = new String[cursor.getCount()][4];
-		int count = 0;
-		if(cursor.getCount()>0){
-			while(cursor.moveToNext()){
-				String contactName = "";
-				String contactNumber = "";
-				String contactImage = "";
-				String contactEmail = "";
-				String id = cursor.getString(
-						cursor.getColumnIndex(ContactsContract.Contacts._ID));
-				contactName = cursor.getString(
-						cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-				
-				String image_uri = cursor.getString(cursor.getColumnIndex(
-						ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
-	 
-				if(image_uri==null){
-					contactImage = "null";
-				}else{
-					contactImage=image_uri;
-				}	            
-	  
-				Cursor emails = cr.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, 
-						null, ContactsContract.CommonDataKinds.Email.CONTACT_ID+" = ?",
-						new String[] {id}, null);
-				while(emails.moveToNext()){
-					String email_id = emails.getString(emails.getColumnIndex(ContactsContract.
-							CommonDataKinds.Email.ADDRESS));
-					if(email_id==null){
-						contactEmail = "null";
-					}else{
-						contactEmail = email_id;
-					}
-				}
-				
-				int has_phone_num = Integer.parseInt(cursor.getString(
-						cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
-				if(has_phone_num>0){
-					Cursor cur= cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-							null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID+" = ?",
-							new String[] {id},null);
-					while(cur.moveToNext()){
-						contactNumber = cur.getString(cur.getColumnIndex(
-								ContactsContract.CommonDataKinds.Phone.NUMBER));
-					}
-					cur.close();
-				}
-				contacts[count][0]=contactName;
-				contacts[count][1]=contactImage;
-				contacts[count][2]=contactNumber;
-				contacts[count][3]=contactEmail;
-				count++;
-			}
-		}
-		cursor.close();
-		return contacts;
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -136,5 +74,87 @@ public class MainActivity extends ActionBarActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	
+	
+	class ContactsTask extends AsyncTask<Void, String, Void>{
+		
+		ArrayAdapter<Contact> contact;
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			Toast.makeText(MainActivity.this, "Loading completed", Toast.LENGTH_LONG).show();
+		}
+
+		@Override
+		protected void onPreExecute() {
+			contact = (ArrayAdapter<Contact>) listView.getAdapter();
+		}
+
+		@Override
+		protected void onProgressUpdate(String... values) {
+			contact.add(new Contact(values[0],values[1],values[2],values[3]));
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			
+			ContentResolver cr =  getContentResolver();
+			Cursor cursor = cr.query(ContactsContract.Contacts.CONTENT_URI,
+					null, null, null, null);
+			if(cursor.getCount()>0){
+				while(cursor.moveToNext()){
+					String contactName = "";
+					String contactNumber = "";
+					String contactImage = "";
+					String contactEmail = "";
+					String id = cursor.getString(
+							cursor.getColumnIndex(ContactsContract.Contacts._ID));
+					contactName = cursor.getString(
+							cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+					
+					String image_uri = cursor.getString(cursor.getColumnIndex(
+							ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
+		 
+					if(image_uri==null){
+						contactImage = "null";
+					}else{
+						contactImage=image_uri;
+					}	            
+		  
+					Cursor emails = cr.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, 
+							null, ContactsContract.CommonDataKinds.Email.CONTACT_ID+" = ?",
+							new String[] {id}, null);
+					while(emails.moveToNext()){
+						String email_id = emails.getString(emails.getColumnIndex(ContactsContract.
+								CommonDataKinds.Email.ADDRESS));
+						if(email_id==null){
+							contactEmail = "null";
+						}else{
+							contactEmail = email_id;
+						}
+					}
+					
+					int has_phone_num = Integer.parseInt(cursor.getString(
+							cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
+					if(has_phone_num>0){
+						Cursor cur= cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+								null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID+" = ?",
+								new String[] {id},null);
+						while(cur.moveToNext()){
+							contactNumber = cur.getString(cur.getColumnIndex(
+									ContactsContract.CommonDataKinds.Phone.NUMBER));
+						}
+						cur.close();
+					}
+					publishProgress(contactName,contactImage,contactNumber,contactEmail);
+				}
+			}
+			cursor.close();
+
+			return null;
+		}
+		
 	}
 }
